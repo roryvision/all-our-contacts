@@ -16,19 +16,23 @@ const handler = NextAuth ({
           password: string;
         };
 
-        const response = await supabase
+        try {
+          const response = await supabase
           .from('group')
           .select()
           .eq('id', id)
           .eq('password', password);
 
-        const group = { id, password };
-
-        if (group) {
-          return group;
-        } else {
+          if (response.error) {
+            console.error('Supabase error:', response.error);
+            throw new Error('Authentication failed');
+          }
+        } catch (error: any) {
+          console.error('Authorization error:', error.message);
           return null;
         }
+
+        return { id, password };
       }
     })
   ]

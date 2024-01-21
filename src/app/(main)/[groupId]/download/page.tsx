@@ -29,20 +29,34 @@ const Page: FC<PageProps> = async ({ params }) => {
   var contacts : Contact[] = [];
 
   const getContacts = async () => {
-    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/groups/${groupId}/contacts`, {
-      method: 'GET',
-      cache: 'no-store',
-    })
-
-    const res = await response.json();
-    res.forEach((r: ContactResponse) => {
-      contacts.push({
-        FN: r.first_name,
-        LN: r.last_name,
-        TEL: r.phone,
+    try {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/groups/${groupId}/contacts`, {
+        method: 'GET',
+        cache: 'no-store',
       });
-    })
-  }
+
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status} ${response.statusText}`);
+      }
+
+      const contentType = response.headers.get('content-type');
+      if (contentType && contentType.includes('application/json')) {
+        const res = await response.json();
+        res.forEach((r: ContactResponse) => {
+          contacts.push({
+            FN: r.first_name,
+            LN: r.last_name,
+            TEL: r.phone,
+          });
+        });
+      } else {
+        throw new Error('Invalid content type in the response');
+      }
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+      // Handle the error, show a message to the user, or perform other appropriate actions.
+    }
+  };
 
   await getContacts();
 
