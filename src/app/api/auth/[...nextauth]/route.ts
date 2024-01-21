@@ -2,9 +2,12 @@ import NextAuth, { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { supabase } from '@/lib/supabase';
 
-const handler = NextAuth ({
+const handler = NextAuth({
   session: {
-    strategy: 'jwt'
+    strategy: 'jwt',
+  },
+  pages: {
+    signIn: '/search',
   },
   providers: [
     CredentialsProvider({
@@ -18,14 +21,18 @@ const handler = NextAuth ({
 
         try {
           const response = await supabase
-          .from('group')
-          .select()
-          .eq('id', id)
-          .eq('password', password);
+            .from('group')
+            .select()
+            .eq('id', id)
+            .eq('password', password);
 
           if (response.error) {
             console.error('Supabase error:', response.error);
             throw new Error('Authentication failed');
+          }
+
+          if (response.data.length == 0) {
+            throw new Error('Incorrect credentials');
           }
         } catch (error: any) {
           console.error('Authorization error:', error.message);
@@ -33,9 +40,9 @@ const handler = NextAuth ({
         }
 
         return { id, password };
-      }
-    })
-  ]
-})
+      },
+    }),
+  ],
+});
 
 export { handler as GET, handler as POST };
