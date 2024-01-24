@@ -5,7 +5,7 @@ import '../globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'All our contacts',
+  title: 'All Our Contacts',
   description: 'Effortlessly download group contacts',
 }
 
@@ -15,8 +15,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>{children}</body>
+    <html lang='en'>
+      <body className='font-nohemi'>
+        <div className='m-9'>
+          {children}
+        </div>
+      </body>
     </html>
   )
 }
