@@ -19,12 +19,12 @@ export default withAuth(
       return response;
     }
 
-    const publicRoutes = ['/search', '/create'];
-    const isAccessingPublicRoute = publicRoutes.some(
-      (route) => pathname === route
+    const protectedRoutes = ['/add', '/download'];
+    const isAccessingProtectedRoute = protectedRoutes.some(
+      (route) => pathname.includes(route)
     );
 
-    if (!token && !isAccessingPublicRoute) {
+    if (!token && isAccessingProtectedRoute) {
       return NextResponse.redirect(new URL('/', req.url));
     }
   },
