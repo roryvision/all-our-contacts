@@ -4,13 +4,21 @@ export async function POST(
   req: Request, 
   { params }: { params: { groupId: string } }
 ) {
-  const { groupId } = params;
-  const { name, password } = await req.json();
+  try {
+    const { groupId } = params;
+    const { name, password } = await req.json();
 
-  const { data, error } = await supabase
-    .from('group')
-    .insert({ groupId, name, password })
-    .select();
+    const { error } = await supabase
+      .from('group')
+      .insert({ groupId, name, password })
+      .select();
 
-  return Response.json(data);
+    if (error) {
+      throw new Error('Failed to add contact');
+    }
+
+    return new Response('Successfully added contact', { status: 201 });
+  } catch (error) {
+    return new Response('Internal Server Error', { status: 500 });
+  }
 }
