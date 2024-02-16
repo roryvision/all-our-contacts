@@ -13,6 +13,7 @@ export async function GET(
       .eq('group_id', groupId);
 
     if (error) {
+      console.log(error);
       throw new Error('Failed to fetch contacts');
     }
 
@@ -45,7 +46,8 @@ export async function POST(
       .select();
 
     if (error) {
-      throw new Error('Failed to fetch contacts');
+      console.log(error);
+      throw new Error('Failed to add contact');
     }
 
     return new Response('Successfully added contact', { status: 201 });
