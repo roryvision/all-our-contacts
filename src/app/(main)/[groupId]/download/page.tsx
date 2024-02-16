@@ -1,25 +1,12 @@
 import { FC } from 'react';
 var vCardsJS = require('vcards-js');
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 interface PageProps {
   params: {
     groupId: string;
   }
-}
-
-interface Contact {
-  FN : string,
-  LN : string,
-  TEL : number,
-}
-
-interface ContactResponse {
-  id: number,
-  created_at: string,
-  first_name: string,
-  last_name: string,
-  phone: number,
-  group_id: string,
 }
 
 const Page: FC<PageProps> = async ({ params }) => {
@@ -53,8 +40,7 @@ const Page: FC<PageProps> = async ({ params }) => {
         throw new Error('Invalid content type in the response');
       }
     } catch (error) {
-      console.error('Error fetching contacts:', error);
-      // Handle the error, show a message to the user, or perform other appropriate actions.
+      toast.error("Error fetching contacts");
     }
   };
 
@@ -76,6 +62,7 @@ const Page: FC<PageProps> = async ({ params }) => {
       >
         Download Contacts
       </a>
+      <ToastContainer />
     </>
   )
 }
