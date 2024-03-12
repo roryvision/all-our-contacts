@@ -1,3 +1,7 @@
+interface Error {
+  status?: number;
+}
+
 interface Contact {
   FN: string;
   LN?: string | null;

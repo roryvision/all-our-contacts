@@ -37,7 +37,7 @@ export default function Home() {
             <p className='text-xl my-4'>Know those unknown numbers <br /> with one <span className='text-sapphire'>effortless</span> download</p>
           </div>
           <div className='w-60 block m-auto my-16'>
-            <Button isLoading={false} onClick={() => setModalIsOpen(true)}>Get Started</Button>
+            <Button className='py-4' isLoading={false} onClick={() => setModalIsOpen(true)}>Get Started</Button>
             <Link onClick = {handleScroll} href='#pitch'><p className='font-jetbrains text-center text-xs underline mt-3'>How does it work?</p></Link>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import NextAuth, { NextAuthOptions } from "next-auth";
+import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import { supabase } from '@/lib/supabase';
 
@@ -27,7 +27,6 @@ const handler = NextAuth({
             .eq('password', password);
 
           if (response.error) {
-            console.error('Supabase error:', response.error);
             throw new Error('Authentication failed');
           }
 
@@ -35,7 +34,6 @@ const handler = NextAuth({
             throw new Error('Incorrect credentials');
           }
         } catch (error: any) {
-          console.error('Authorization error:', error.message);
           return null;
         }
 
