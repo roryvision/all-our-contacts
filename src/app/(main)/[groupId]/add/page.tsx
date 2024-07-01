@@ -1,61 +1,109 @@
 'use client'
 
-import { FC, FormEvent } from 'react';
 import { useRouter } from 'next/navigation';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { showToastError } from '@/utils/toast';
 
 interface PageProps {
   params: {
     groupId: string,
   }
 }
+const formSchema = z.object({
+  firstName: z.string()
+    .min(1, { message: "Name is required" })
+    .max(200, { message: "Cannot exceed 200 characters" }),
+  lastName: z.string().max(200, { message: "Cannot exceed 200 characters" }).optional(),
+  phoneNumber: z.string()
+    .min(4, { message: "Phone number is required" })
+    .max(15, { message: "Cannot exceed 15 digits" })
+})
 
-interface FormData {
-  first: string;
-  last?: string | null;
-  phone: string;
-  groupId: string;
-}
-
-const Page: FC<PageProps> = ({ params }) => {
+export default function Page({ params }: PageProps) {
   const { groupId } = params;
   const router = useRouter();
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      phoneNumber: '',
+    }
+  })
+  
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const { firstName, lastName, phoneNumber } = values;
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
+    try {
+      const response = await fetch(`/api/groups/${groupId}/contacts`, {
+        method: 'POST',
+        body: JSON.stringify({
+          first: firstName,
+          last: lastName,
+          phone: phoneNumber,
+        })
+      })
 
-    const response = await fetch(`/api/groups/${groupId}/contacts`, {
-      method: 'POST',
-      body: JSON.stringify({
-        first: formData.get('first'),
-        last: formData.get('last'),
-        phone: formData.get('phone'),
-      } as FormData)
-    })
-
-    if (response.ok) {
-      router.push(`/${groupId}/download`);
+      if (response.ok) {
+        router.push(`/${groupId}/download`);
+      } else {
+        showToastError("Sorry, we couldn't add your contact due to an error on our end.");
+      }
+    } catch (error) {
+      showToastError("An unexpected error occurred. Please try again later.");
     }
   }
 
-  const handleGoToDownload = () => {
-    router.push(`/${groupId}/download`);
-  }
-
   return (
-    <div>
-      <form onSubmit={handleSubmit}>
-        <label htmlFor="contact-first">First name*</label>
-        <input type="text" name="first" id='contact-first' />
-        <label htmlFor="contact-last">Last name</label>
-        <input type="text" name="last" id='contact-last' />
-        <label htmlFor="contact-phone">Phone*</label>
-        <input type="text" name="phone" id='contact-phone' />
-        <button type='submit'>Create</button>
-        <a onClick={handleGoToDownload}>I just want to download</a>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-2'>
+        <FormField
+          control={form.control}
+          name='firstName'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>First Name</FormLabel>
+              <FormControl>
+                <Input placeholder='John' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name='lastName'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Last Name</FormLabel>
+              <FormControl>
+                <Input placeholder='Doe' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name='phoneNumber'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Phone Number</FormLabel>
+              <FormControl>
+                <Input placeholder='XXXXXXXXXX' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type='submit'>Add to group</Button>
+        <Button onClick={() => router.push(`/${groupId}/download`)}>Skip to download</Button>
       </form>
-    </div>  
+    </Form> 
   )
 }
-
-export default Page;

@@ -1,57 +1,34 @@
 'use client'
 
-import { FC, FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ToastContainer } from 'react-toastify';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useForm } from 'react-hook-form';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { showToastError } from '@/utils/toast';
+import { generateId } from '@/utils/generate';
 
-interface PageProps {}
+const formSchema = z.object({
+  groupName: z.string()
+    .min(1, { message: "Name is required" })
+    .max(32, { message: "Cannot exceed 32 characters" }),
+  password: z.string().min(8, { message: "A password with at least 8 characters is required" })
+})
 
-interface FormData {
-  id: string;
-  name: string;
-  password: string;
-}
-
-const Page: FC<PageProps> = () => {
+export default function Page() {
   const router = useRouter();
-  const [errors, setErrors] = useState<{ [key: string]: string }>({});
-
-  const generateId = (): string => {
-    const characters: string = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-    let id: string = '';
-
-    for (let i: number = 0; i < 8; i++) {
-      const randomIndex: number = Math.floor(Math.random() * characters.length);
-      id += characters.charAt(randomIndex);
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      groupName: '',
+      password: ''
     }
+  })
 
-    return id;
-  }
-
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    const formData = new FormData(e.currentTarget);
-
-    const name: string | null = formData.get('name') as string;
-    const password: string | null = formData.get('password') as string;
-
-    if (!name || !password) {
-      setErrors({
-        name: !name ? 'Please provide a name' : '',
-        password: !password ? 'Please provide a password' : '',
-      })
-      return;
-    }
-
-    if (name.length > 32) {
-      setErrors({
-        ...errors,
-        name: 'Cannot exceed 32 characters',
-      });
-      return;
-    }
-
+  async function onSubmit(values: z.infer<typeof formSchema>) {
+    const { groupName, password } = values;
     const groupId: string = generateId();
 
     try {
@@ -59,9 +36,9 @@ const Page: FC<PageProps> = () => {
         method: 'POST',
         body: JSON.stringify({
           id: groupId,
-          name: name,
+          name: groupName,
           password: password,
-        } as FormData)
+        })
       })
 
       if (response.ok) {
@@ -75,19 +52,36 @@ const Page: FC<PageProps> = () => {
   }
 
   return (
-    <div>
-      <ToastContainer />
-      <form onSubmit={handleSubmit}>
-        <label htmlFor='group-name'>Group Name</label>
-        <input type='text' name='name' id='group-name' maxLength={32} />
-        {errors.name && <p style={{ color: 'red' }}>{errors.name}</p>}
-        <label htmlFor='group-pw'>Password</label>
-        <input type='text' name='password' id='group-pw' />
-        {errors.password && <p style={{ color: 'red' }}>{errors.password}</p>}
-        <button type='submit'>Create</button>
+    <Form {...form}>
+      <form onSubmit={form.handleSubmit(onSubmit)} className='space-y-2'>
+        <FormField
+          control={form.control}
+          name='groupName'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Group Name</FormLabel>
+              <FormControl>
+                <Input placeholder='All Our Contacts' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <FormField
+          control={form.control}
+          name='password'
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Password</FormLabel>
+              <FormControl>
+                <Input placeholder='********' {...field} />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+        <Button type='submit'>Create</Button>
       </form>
-    </div>
+    </Form>
   )
 }
-
-export default Page;

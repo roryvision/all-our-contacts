@@ -1,6 +1,5 @@
 'use client'
 
-import { FC } from 'react';
 import Search from '../Search';
 
 interface PageProps {
@@ -9,12 +8,10 @@ interface PageProps {
   }
 }
 
-const Page: FC<PageProps> = ({ params }) => {
+export default function Page({ params }: PageProps) {
   const { groupId } = params;
 
   return (
     <Search groupId={groupId} />
   )
 }
-
-export default Page;

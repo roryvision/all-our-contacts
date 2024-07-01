@@ -1,7 +1,9 @@
-import { FC } from 'react';
-var vCardsJS = require('vcards-js');
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+'use client'
+
+import { Button } from '@/components/ui/button';
+import { createVCF } from '@/utils/actions';
+import { DownloadIcon } from '@radix-ui/react-icons';
+import { useEffect, useState } from 'react';
 
 interface PageProps {
   params: {
@@ -9,62 +11,61 @@ interface PageProps {
   }
 }
 
-const Page: FC<PageProps> = async ({ params }) => {
+export default function Page({ params }: PageProps) {
   const { groupId } = params;
-  var vContact;
-  var vCardData = '';
   var contacts : Contact[] = [];
+  const [vCardData, setVCardData] = useState<string>('');
 
-  const getContacts = async () => {
-    try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/groups/${groupId}/contacts`, {
-        method: 'GET',
-        cache: 'no-store',
-      });
-
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status} ${response.statusText}`);
-      }
-
-      const contentType = response.headers.get('content-type');
-      if (contentType && contentType.includes('application/json')) {
-        const res = await response.json();
-        res.forEach((r: ContactResponse) => {
-          contacts.push({
-            FN: r.first_name,
-            LN: r.last_name,
-            TEL: r.phone,
-          });
-        });
-      } else {
-        throw new Error('Invalid content type in the response');
-      }
-    } catch (error) {
-      toast.error("Error fetching contacts");
-    }
-  };
-
-  await getContacts();
-
-  contacts.forEach((contact) => {
-    vContact = vCardsJS();
-    vContact.firstName = contact.FN;
-    vContact.lastName = contact.LN;
-    vContact.cellPhone = contact.TEL;
-    vCardData += vContact.getFormattedString();
-  })
+  useEffect(() => {
+    (async () => {
+      contacts = await getContacts(groupId);
+      const vCard = await createVCF(contacts);
+      setVCardData(vCard);
+    })();
+  }, []);
 
   return (
     <>
-      <a
-        href={`data:text/vcard;charset=utf-8,${encodeURIComponent(vCardData)}`}
-        download='contacts.vcf'
-      >
-        Download Contacts
-      </a>
-      <ToastContainer />
+      <Button asChild>
+        <a
+          href={`data:text/vcard;charset=utf-8,${encodeURIComponent(vCardData)}`}
+          download='contacts.vcf'
+        >
+          <DownloadIcon className='mr-2' /> Download
+        </a>
+      </Button>
     </>
   )
 }
 
-export default Page;
+async function getContacts(groupId: String) {
+  const contacts: Contact[] = [];
+
+  try {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/groups/${groupId}/contacts`, {
+      method: 'GET',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status} ${response.statusText}`);
+    }
+
+    const contentType = response.headers.get('content-type');
+    if (contentType && contentType.includes('application/json')) {
+      const res = await response.json();
+      res.forEach((r: ContactResponse) => {
+        contacts.push({
+          FN: r.first_name,
+          LN: r.last_name,
+          TEL: r.phone,
+        });
+      });
+    } else {
+      throw new Error('Invalid content type in the response');
+    }
+  } catch (error) {
+    throw error;
+  }
+
+  return contacts;
+}

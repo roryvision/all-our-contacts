@@ -13,7 +13,6 @@ export async function GET(
       .eq('group_id', groupId);
 
     if (error) {
-      console.log(error);
       throw new Error('Failed to fetch contacts');
     }
 
