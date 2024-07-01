@@ -1,9 +1,9 @@
 'use client'
 
+import { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { createVCF } from '@/utils/actions';
-import { DownloadIcon } from '@radix-ui/react-icons';
-import { useEffect, useState } from 'react';
+import { Download } from 'lucide-react';
 
 interface PageProps {
   params: {
@@ -26,12 +26,12 @@ export default function Page({ params }: PageProps) {
 
   return (
     <>
-      <Button asChild>
+      <Button size='wide'>
         <a
           href={`data:text/vcard;charset=utf-8,${encodeURIComponent(vCardData)}`}
           download='contacts.vcf'
         >
-          <DownloadIcon className='mr-2' /> Download
+          <Download className='mr-2 float-left h-4 w-4' /> Download
         </a>
       </Button>
     </>

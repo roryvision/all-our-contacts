@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -14,7 +15,7 @@ const formSchema = z.object({
   groupName: z.string()
     .min(1, { message: "Name is required" })
     .max(32, { message: "Cannot exceed 32 characters" }),
-  password: z.string().min(8, { message: "A password with at least 8 characters is required" })
+  password: z.string().min(8, { message: "A password of at least 8 characters is required" })
 })
 
 export default function Page() {
@@ -27,9 +28,13 @@ export default function Page() {
     }
   })
 
+  const [isWaiting, setIsWaiting] = useState<boolean>(false);
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { groupName, password } = values;
     const groupId: string = generateId();
+
+    setIsWaiting(true);
 
     try {
       const response = await fetch('/api/groups', {
@@ -49,6 +54,8 @@ export default function Page() {
     } catch (error) {
       showToastError("An unexpected error occurred. Please try again later.");
     }
+
+    setIsWaiting(false);
   }
 
   return (
@@ -80,7 +87,7 @@ export default function Page() {
             </FormItem>
           )}
         />
-        <Button type='submit'>Create</Button>
+        <Button type='submit' loading={isWaiting}>Create</Button>
       </form>
     </Form>
   )

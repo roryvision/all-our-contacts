@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -8,6 +9,7 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { showToastError } from '@/utils/toast';
+import Link from 'next/link';
 
 interface PageProps {
   params: {
@@ -35,9 +37,12 @@ export default function Page({ params }: PageProps) {
       phoneNumber: '',
     }
   })
+
+  const [isWaiting, setIsWaiting] = useState<boolean>(false);
   
   async function onSubmit(values: z.infer<typeof formSchema>) {
     const { firstName, lastName, phoneNumber } = values;
+    setIsWaiting(true);
 
     try {
       const response = await fetch(`/api/groups/${groupId}/contacts`, {
@@ -57,6 +62,8 @@ export default function Page({ params }: PageProps) {
     } catch (error) {
       showToastError("An unexpected error occurred. Please try again later.");
     }
+
+    setIsWaiting(false);
   }
 
   return (
@@ -101,8 +108,10 @@ export default function Page({ params }: PageProps) {
             </FormItem>
           )}
         />
-        <Button type='submit'>Add to group</Button>
-        <Button onClick={() => router.push(`/${groupId}/download`)}>Skip to download</Button>
+        <Button type='submit' size='wide' loading={isWaiting}>Add to group</Button>
+        <Button variant='link' asChild>
+          <Link href={`/${groupId}/download`}>Skip to download</Link>
+        </Button>
       </form>
     </Form> 
   )
